@@ -6,33 +6,48 @@ function noMatch() {
 }
 function displayMatches(matches) {
   cardWrapper.innerHTML = "";
-
   if (!matches.length) {
     noMatch();
   }
   for (let matchObj of matches) {
-    console.log(matchObj);
-    cardWrapper.insertAdjacentHTML(
-      "beforeend",
-      `<div class='movie-card' style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${matchObj.movie_image});"><h3>${matchObj.title}</h3><p>${matchObj.description}</p> <a href='${matchObj.imdb_link}' target="_blank">View More Info Here</a></div>`
-    );
+    let imdb = matchObj.imdbID;
+    fetch(`https://www.omdbapi.com/?apikey=257d3522&i=${imdb}`)
+      .then((data) => data.json())
+      .then(function (data) {
+        let plot = data.Plot;
+        cardWrapper.insertAdjacentHTML(
+          "beforeend",
+          `<div class='movie-card' style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${matchObj.Poster});"><h3>${matchObj.Title}</h3><p>${plot}</p> <a href='https://imdb.com/title/${matchObj.imdbID}' target="_blank">View More Info Here</a></div>`
+        );
+      });
   }
 }
 
 function fetchMovies(event) {
   var keyCode = event.keyCode;
   var searchText = searchInput.value.toLowerCase().trim();
-  let matches = [];
+
   if (keyCode === 13 && searchText) {
-    for (let movieObj of movieData) {
-      if (movieObj.title.toLowerCase().includes(searchText)) {
-        console.log(movieObj.title);
-        matches.push(movieObj);
-      }
+    let responsePromise = fetch(
+      `https://www.omdbapi.com/?apikey=257d3522&s=${searchText}`
+    );
+
+    function handleResponse(responseObj) {
+      return responseObj.json();
     }
-    console.log(matches);
-    searchInput.value = "";
-    displayMatches(matches);
+
+    responsePromise.then(handleResponse).then(function (data) {
+      let dataArray = data.Search;
+      displayMatches(dataArray);
+      searchInput.value = "";
+    });
+
+    console.log("test");
+    // responsePromise.then(function (responseObj) {
+    //   let dataPromise = responseObj.json();
+    //   console.log(dataPromise);
+    //   dataPromise.then(function (data) {
+    //     console.log(data);
   }
 }
 
